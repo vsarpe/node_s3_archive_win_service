@@ -9,6 +9,9 @@ npm install
 ```
 
 Set your environment variables provided in `.env.example`. The ones which are required are `ROOT_FOLDER`, `AWS_ACCESS_KEY`, `AWS_SECRET_KEY`, `AWS_S3_BUCKET`. 
+```
+cp .env.example .env
+```
 
 To run on a schedule manually:
 ```
