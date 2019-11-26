@@ -17,7 +17,8 @@ service.on('install', function () {
 });
 
 service.on('uninstall', function () {
-  console
+  service.stop();
+  console.log('Service uninstalled');
 });
 
 const install = () => {

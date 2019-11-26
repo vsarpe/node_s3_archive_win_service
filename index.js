@@ -36,7 +36,6 @@ const handleFile = async (file) => {
 const handleDirectory = async (dirPath) => {
   try {
     const contents = Fs.readdirSync(dirPath);
-
     for (const content of contents) {
       const path = Path.join(dirPath, "/", content);
       if (Fs.statSync(path).isFile()) {
