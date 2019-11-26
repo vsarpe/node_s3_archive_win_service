@@ -1,0 +1,28 @@
+{
+  "name": "node_s3_archive_win_service",
+  "version": "0.1.0",
+  "description": "A windows service which uploads files to S3 and keep an internal database. After the files are uploaded to S3, the service will delete the files locally.",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test",
+    "start": "node index.js",
+    "install-service": "node -e 'require(\"./winservice.js\").install()",
+    "uninstall-service": "node -e 'require(\"./winservice.js\").uninstall()"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vsarpe/node_s3_archive_win_service.git"
+  },
+  "author": "Vladimir Sarpe",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vsarpe/node_s3_archive_win_service/issues"
+  },
+  "homepage": "https://github.com/vsarpe/node_s3_archive_win_service#readme",
+  "dependencies": {
+    "aws-sdk": "^2.521.0",
+    "dotenv": "^8.2.0",
+    "node-windows": "^0.1.14",
+    "sqlite3": "^4.1.0"
+  }
+}
