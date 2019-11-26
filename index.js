@@ -10,9 +10,9 @@ const argv = require('yargs').argv;
 const AWSManager = require('./lib/aws-manager');
 const DBManager = require('./lib/db-manager');
 
-const DB_FILE = process.env.DB_FILE;
+const DB_FILE = process.env.DB_FILE || `./db.sqlite`;
 const ROOT_FOLDER = process.env.ROOT_FOLDER;
-const HOURS_THRESHOLD = process.env.FILE_AGE_THRESHOLD_HOURS;
+const HOURS_THRESHOLD = +process.env.FILE_AGE_THRESHOLD_HOURS;
 const HOURS_PER_MS = 36e5;
 
 const fsStat = util.promisify(fs.stat);
