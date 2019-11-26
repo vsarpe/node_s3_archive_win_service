@@ -23,7 +23,7 @@ To run only once:
 node index.js --once
 ```
 
-To run as a Windows Service which checks process health and restarts in case of failure:
+To install it as a Windows Service which will retstart itself automatically after shutdown/reboot:
 ```
 node winservice.js --install
 ```
