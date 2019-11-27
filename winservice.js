@@ -7,7 +7,7 @@ const Service = require('node-windows').Service;
 
 const getService = () => {
   const service = new Service({
-    name: 'Node S3 Archive SErvice',
+    name: 'Node S3 Archive Service',
     description: 'The S3 Glacier archive service.',
     script: `${process.cwd()}\\index.js`
   });
