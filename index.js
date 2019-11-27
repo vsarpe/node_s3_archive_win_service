@@ -14,6 +14,7 @@ const DB_FILE = process.env.DB_FILE || `./db.sqlite`;
 const ROOT_FOLDER = process.env.ROOT_FOLDER;
 const HOURS_THRESHOLD = +process.env.FILE_AGE_THRESHOLD_HOURS;
 const HOURS_PER_MS = 36e5;
+const DELETE_FILES = process.env.DELETE_FILES === 'true';
 
 const fsStat = util.promisify(fs.stat);
 
@@ -29,7 +30,7 @@ const handleFile = async (file, jobId) => {
       const body = fs.readFileSync(file);
       const result = await AWSManager.upload(key, body);
       const insert = await DBManager.insert(`INSERT INTO files(original_path, job_id, s3_location, s3_bucket, s3_key, size) VALUES ('${file}', '${jobId}', '${result.Location}', '${result.Bucket}', '${result.Key}', '${stats.size}')`);
-      if (insert) {
+      if (DELETE_FILES && insert) {
         // Delete file after successful download
         fs.unlinkSync(file);
       }
