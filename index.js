@@ -9,6 +9,7 @@ const schedule = require('node-schedule');
 const argv = require('yargs').argv;
 const AWSManager = require('./lib/aws-manager');
 const DBManager = require('./lib/db-manager');
+const MigrationManager = require('./lib/migration-manager');
 
 const DB_FILE = process.env.DB_FILE || `./db.sqlite`;
 const ROOT_FOLDER = process.env.ROOT_FOLDER;
@@ -24,16 +25,29 @@ const handleFile = async (file, jobId) => {
   try {
     const stats = await fsStat(file);
     const hours = Math.abs(new Date() - stats.birthtime) / HOURS_PER_MS;
-    if (hours > HOURS_THRESHOLD) {
+
+    const shouldDelete = DELETE_FILES && hours > HOURS_THRESHOLD;
+    let isDeleted = false;
+
+    // See if we already stored the file
+    const rows = await DBManager.select(`SELECT * FROM files WHERE original_path = '${file}' LIMIT 1;`);
+    if (!rows.length) {
       // Flip Windows slashes
       const key = file.split(ROOT_FOLDER).join('').split('\\').join('/');
       const body = fs.readFileSync(file);
       const result = await AWSManager.upload(key, body);
-      const insert = await DBManager.insert(`INSERT INTO files(original_path, job_id, s3_location, s3_bucket, s3_key, size) VALUES ('${file}', '${jobId}', '${result.Location}', '${result.Bucket}', '${result.Key}', '${stats.size}')`);
-      if (DELETE_FILES && insert) {
-        // Delete file after successful download
-        fs.unlinkSync(file);
-      }
+
+      await DBManager.insert(`INSERT INTO files(original_path, job_id, s3_location, s3_bucket, s3_key, size) VALUES ('${file}', '${jobId}', '${result.Location}', '${result.Bucket}', '${result.Key}', '${stats.size}')`);
+    } else {
+      isDeleted = !!rows[0].deleted;
+    }
+
+    if (shouldDelete && !isDeleted) {
+      // Delete file after everything is complete if needed
+      fs.unlinkSync(file);
+
+      // Update DB
+      await DBManager.run(`UPDATE files SET deleted = 1 WHERE original_path = '${file}';`);
     }
   } catch (error) {
     // Skip failed files, they will be handled on a subsequent run
@@ -61,8 +75,12 @@ const handleDirectory = async (dirPath, jobId) => {
 const start = async () => {
   console.log(`Archive started '${ROOT_FOLDER}'`);
 
+  // Prep DB
   await DBManager.open(DB_FILE);
   await DBManager.initialize();
+
+  // Run migrations if needed
+  await MigrationManager.runMigrations();
 
   const jobId = await DBManager.insert(`INSERT INTO jobs(folder, hours_threshold) VALUES ('${ROOT_FOLDER}', '${HOURS_THRESHOLD}')`);
   await handleDirectory(ROOT_FOLDER, jobId);
