@@ -87,6 +87,11 @@ const start = async () => {
 
   await DBManager.close();
 
+  // Upload updated database to S3
+  const key = path.basename(DB_FILE);
+  const body = fs.readFileSync(DB_FILE);
+  await AWSManager.upload(key, body, 'STANDARD');
+
   console.log(`Archive finished '${ROOT_FOLDER}'`);
 };
 
