@@ -34,8 +34,10 @@ const handleFile = async (file, jobId) => {
     if (!rows.length) {
       // Flip Windows slashes
       const key = file.split(ROOT_FOLDER).join('').split('\\').join('/');
-      const body = fs.readFileSync(file);
-      const result = await AWSManager.upload(key, body);
+
+      const { writeStream, uploadPromise } = AWSManager.uploadStream(key);
+      fs.createReadStream(file).pipe(writeStream);
+      const result = await uploadPromise;
 
       await DBManager.insert(`INSERT INTO files(original_path, job_id, s3_location, s3_bucket, s3_key, size) VALUES ('${file}', '${jobId}', '${result.Location}', '${result.Bucket}', '${result.Key}', '${stats.size}')`);
     } else {
