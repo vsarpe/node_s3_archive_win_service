@@ -93,8 +93,11 @@ const start = async () => {
 
   // Upload updated database to S3
   const key = path.basename(DB_FILE);
-  const body = fs.readFileSync(DB_FILE);
-  await AWSManager.upload(key, body, 'STANDARD');
+
+  // Create upload steam and wait for it to finish
+  const { writeStream, uploadPromise } = AWSManager.uploadStream(key, 'STANDARD');
+  fs.createReadStream(DB_FILE).pipe(writeStream);
+  await uploadPromise;
 
   console.log(`Archive finished '${ROOT_FOLDER}'`);
 };
