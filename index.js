@@ -35,10 +35,12 @@ const handleFile = async (file, jobId) => {
       // Flip Windows slashes
       const key = file.split(ROOT_FOLDER).join('').split('\\').join('/');
 
+      // Create upload steam and wait for it to finish
       const { writeStream, uploadPromise } = AWSManager.uploadStream(key);
       fs.createReadStream(file).pipe(writeStream);
       const result = await uploadPromise;
 
+      // Record upload in database
       await DBManager.insert(`INSERT INTO files(original_path, job_id, s3_location, s3_bucket, s3_key, size) VALUES ('${file}', '${jobId}', '${result.Location}', '${result.Bucket}', '${result.Key}', '${stats.size}')`);
     } else {
       isDeleted = !!rows[0].deleted;
